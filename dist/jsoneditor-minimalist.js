@@ -24,8 +24,8 @@
  * Copyright (c) 2011-2017 Jos de Jong, http://jsoneditoronline.org
  *
  * @author  Jos de Jong, <wjosdejong@gmail.com>
- * @version 5.9.3
- * @date    2017-07-24
+ * @version 5.9.3b
+ * @date    2017-08-01
  */
 (function webpackUniversalModuleDefinition(root, factory) {
 	if(typeof exports === 'object' && typeof module === 'object')
@@ -129,6 +129,9 @@ return /******/ (function(modules) { // webpackBootstrap
 	 *                               {boolean} sortObjectKeys If true, object keys are
 	 *                                                        sorted before display.
 	 *                                                        false by default.
+	 *                               {string} valueDisplayMode  Value display type. Available values:
+	 *                                                          'value' (default), 'schema',
+	 *                                                          'schema-if-null'
 	 * @param {Object | undefined} json JSON object
 	 */
 	function JSONEditor (container, options, json) {
@@ -166,8 +169,9 @@ return /******/ (function(modules) { // webpackBootstrap
 	      var VALID_OPTIONS = [
 	        'ajv', 'schema', 'schemaRefs','templates',
 	        'ace', 'theme','autocomplete',
-	        'onChange', 'onEditable', 'onError', 'onModeChange',
-	        'escapeUnicode', 'history', 'search', 'mode', 'modes', 'name', 'indentation', 'sortObjectKeys'
+	        'onChange', 'onEditable', 'onError', 'onModeChange', 'onValueDisplayModeChange',
+	        'escapeUnicode', 'history', 'search', 'mode', 'modes', 'name', 'indentation', 'sortObjectKeys',
+	        'valueDisplayMode'
 	      ];
 
 	      Object.keys(options).forEach(function (option) {
@@ -217,6 +221,9 @@ return /******/ (function(modules) { // webpackBootstrap
 
 	  var mode = this.options.mode || (this.options.modes && this.options.modes[0]) || 'tree';
 	  this.setMode(mode);
+	  
+	  var valueDisplayMode = this.options.valueDisplayMode || 'value';
+	  this.setValueDisplayMode(valueDisplayMode);
 	};
 
 	/**
@@ -337,6 +344,57 @@ return /******/ (function(modules) { // webpackBootstrap
 	 */
 	JSONEditor.prototype.getMode = function () {
 	  return this.options.mode;
+	};
+
+	/**
+	 * Change the value display mode of the editor.
+	 * JSONEditor will be extended with all methods needed for the chosen mode.
+	 * @param {String} mode     Available modes: 'value' (default), 'schema', 'schema-if-null'.
+	 */
+	JSONEditor.prototype.setValueDisplayMode = function (valueDisplayMode) {
+	  var container = this.container;
+	  var options = util.extend({}, this.options);
+	  var oldMode = options.valueDisplayMode;
+	  var data;
+	  var name;
+
+	  options.valueDisplayMode = valueDisplayMode;
+	  var config = JSONEditor.modes[this.options.mode];
+	  if (config) {
+	    try {
+	      if (typeof config.load === 'function') {
+	        try {
+	          config.load.call(this);
+	        }
+	        catch (err) {
+	          console.error(err);
+	        }
+	      }
+
+	      if (typeof options.onValueDisplayModeChange === 'function' && valueDisplayMode !== oldMode) {
+	        try {
+	          options.onValueDisplayModeChange(valueDisplayMode, oldMode);
+	        }
+	        catch (err) {
+	          console.error(err);
+	        }
+	      }
+	    }
+	    catch (err) {
+	      this._onError(err);
+	    }
+	  }
+	  else {
+	    throw new Error('Unknown value display mode "' + options.valueDisplayMode + '"');
+	  }
+	};
+
+	/**
+	 * Get the current value display mode
+	 * @return {string}
+	 */
+	JSONEditor.prototype.getValueDisplayMode = function () {
+	  return this.options.valueDisplayMode;
 	};
 
 	/**
@@ -5360,6 +5418,36 @@ return /******/ (function(modules) { // webpackBootstrap
 	};
 
 	/**
+	 * Find schema reference in the editor options (recursively if necessary)
+	 * @private
+	 * @param {string} [reference]  schema ref for which we're looking for the type
+	 * @return {string} Returns the schema type for the schema ref
+	 */
+	Node.prototype._findSchemaRef = function (reference) {
+	  var ref = this.editor.options.schemaRefs[reference];
+	  if (ref) {
+	    if (!ref.type && ref.$ref) {
+	      return this._findSchemaRef(ref.$ref);
+	    }
+	    if (ref.type === 'object') {
+	      if (ref.properties && ref.properties[this.field]) {
+	        if (ref.properties[this.field].type) {
+	          return ref.properties[this.field].type;
+	        }
+	        if (ref.properties[this.field].$ref) {
+	          return this._findSchemaRef(ref.properties[this.field].$ref);
+	        }
+	      }
+	      // console.warn('Could not find schema ref', reference);
+	      return undefined;
+	    }
+	    return ref.type;
+	  }
+	  console.warn('Schema ref %s undefined', reference);
+	  return undefined;
+	};
+
+	/**
 	 * Update dom value:
 	 * - the text color of the value, depending on the type of the value
 	 * - the height of the field, depending on the width
@@ -5371,12 +5459,23 @@ return /******/ (function(modules) { // webpackBootstrap
 	  if (domValue) {
 	    var classNames = ['jsoneditor-value'];
 
-
 	    // set text color depending on value type
 	    var value = this.value;
 	    var type = (this.type == 'auto') ? util.type(value) : this.type;
 	    var isUrl = type == 'string' && util.isUrl(value);
 	    classNames.push('jsoneditor-' + type);
+	    if (this.schema && (this.editor.options.valueDisplayMode === 'schema' || this.editor.options.valueDisplayMode === 'schema-if-null')) {
+	      if (type === 'null' || this.editor.options.valueDisplayMode === 'schema') {
+	        var schemaType = this.schema.type;
+	        if (!schemaType && this.schema.$ref) {
+	          schemaType = this._findSchemaRef(this.schema.$ref);
+	        }
+	        if (schemaType) {
+	          classNames.push('jsoneditor-expected-' + schemaType);
+	          domValue.textContent = schemaType;
+	        }
+	      }
+	    }
 	    if (isUrl) {
 	      classNames.push('jsoneditor-url');
 	    }

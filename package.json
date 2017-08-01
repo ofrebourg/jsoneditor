@@ -1,6 +1,6 @@
 {
   "name": "jsoneditor",
-  "version": "5.9.3",
+  "version": "5.9.3b",
   "main": "./index",
   "description": "A web-based tool to view, edit, format, and validate JSON",
   "tags": [
@@ -11,10 +11,10 @@
   ],
   "author": "Jos de Jong <wjosdejong@gmail.com>",
   "license": "Apache-2.0",
-  "homepage": "https://github.com/josdejong/jsoneditor",
+  "homepage": "https://github.com/ofrebourg/jsoneditor",
   "repository": {
     "type": "git",
-    "url": "https://github.com/josdejong/jsoneditor.git"
+    "url": "https://github.com/ofrebourg/jsoneditor.git"
   },
   "bugs": "https://github.com/josdejong/jsoneditor/issues",
   "scripts": {
