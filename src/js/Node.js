@@ -2186,6 +2186,19 @@ Node.prototype._createDomExpandButton = function () {
   return expand;
 };
 
+/**
+ * Create a row selector button
+ * @return {Element} selector
+ * @private
+ */
+Node.prototype._createDomSelectorButton = function () {
+  // create selector button
+  var selector = document.createElement('button');
+  selector.type = 'button';
+  selector.title = 'o';
+
+  return selector;
+};
 
 /**
  * Create a DOM tree element, containing the expand/collapse button
@@ -2236,6 +2249,16 @@ Node.prototype._createDomTree = function () {
   tdValue.appendChild(dom.value);
   dom.tdValue = tdValue;
 
+  // create a selector
+  if (this.editor.options.onSelector) {
+    var tdSelector = document.createElement('td');
+    tdSelector.className = 'jsoneditor-tree';
+    tr.appendChild(tdSelector);
+    dom.selector = this._createDomSelectorButton();
+    tdSelector.appendChild(dom.selector);
+    tdSelector.className = 'jsoneditor-selector ' + this.editor.options.selectorPosition;
+    dom.tdSeparator = tdSelector;
+  }
   return domTree;
 };
 
@@ -2281,6 +2304,23 @@ Node.prototype.onEvent = function (event) {
       if (expandable) {
         var recurse = event.ctrlKey; // with ctrl-key, expand/collapse all
         this._onExpand(recurse);
+      }
+    }
+  }
+  
+  // handle row selector click events
+  if (type == 'click' && target == dom.selector) {
+    var nodePath = node.getNodePath();
+    var editor;
+    if (nodePath.length > 0) {
+      editor = nodePath[0].editor;
+    }
+    if (editor && editor.options && editor.options.onSelector) {
+      try {
+        editor.options.onSelector(nodePath);
+      }
+      catch (err) {
+        console.error('Error in onSelector callback: ', err);
       }
     }
   }

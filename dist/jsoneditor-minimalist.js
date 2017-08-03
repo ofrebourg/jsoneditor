@@ -24,8 +24,8 @@
  * Copyright (c) 2011-2017 Jos de Jong, http://jsoneditoronline.org
  *
  * @author  Jos de Jong, <wjosdejong@gmail.com>
- * @version 5.9.3b
- * @date    2017-08-01
+ * @version 5.9.3c
+ * @date    2017-08-03
  */
 (function webpackUniversalModuleDefinition(root, factory) {
 	if(typeof exports === 'object' && typeof module === 'object')
@@ -132,6 +132,9 @@ return /******/ (function(modules) { // webpackBootstrap
 	 *                               {string} valueDisplayMode  Value display type. Available values:
 	 *                                                          'value' (default), 'schema',
 	 *                                                          'schema-if-null'
+	 *                               {function} onSelector      Callback method triggered when
+	 *                                                          clicking the row selector button
+	 * 								               {String} selectorPosition	'right' (default) or 'left'
 	 * @param {Object | undefined} json JSON object
 	 */
 	function JSONEditor (container, options, json) {
@@ -163,15 +166,18 @@ return /******/ (function(modules) { // webpackBootstrap
 	      options.onEditable = options.editable;
 	      delete options.editable;
 	    }
+			if (!options.selectorPosition || options.selectorPosition !== 'left') {
+				options.selectorPosition = 'right';
+			}
 
 	    // validate options
 	    if (options) {
 	      var VALID_OPTIONS = [
 	        'ajv', 'schema', 'schemaRefs','templates',
 	        'ace', 'theme','autocomplete',
-	        'onChange', 'onEditable', 'onError', 'onModeChange', 'onValueDisplayModeChange',
+	        'onChange', 'onEditable', 'onError', 'onModeChange', 'onValueDisplayModeChange','onSelector',
 	        'escapeUnicode', 'history', 'search', 'mode', 'modes', 'name', 'indentation', 'sortObjectKeys',
-	        'valueDisplayMode'
+	        'valueDisplayMode', 'selectorPosition'
 	      ];
 
 	      Object.keys(options).forEach(function (option) {
@@ -6398,6 +6404,19 @@ return /******/ (function(modules) { // webpackBootstrap
 	  return expand;
 	};
 
+	/**
+	 * Create a row selector button
+	 * @return {Element} selector
+	 * @private
+	 */
+	Node.prototype._createDomSelectorButton = function () {
+	  // create selector button
+	  var selector = document.createElement('button');
+	  selector.type = 'button';
+	  selector.title = 'o';
+
+	  return selector;
+	};
 
 	/**
 	 * Create a DOM tree element, containing the expand/collapse button
@@ -6448,6 +6467,16 @@ return /******/ (function(modules) { // webpackBootstrap
 	  tdValue.appendChild(dom.value);
 	  dom.tdValue = tdValue;
 
+	  // create a selector
+	  if (this.editor.options.onSelector) {
+	    var tdSelector = document.createElement('td');
+	    tdSelector.className = 'jsoneditor-tree';
+	    tr.appendChild(tdSelector);
+	    dom.selector = this._createDomSelectorButton();
+	    tdSelector.appendChild(dom.selector);
+	    tdSelector.className = 'jsoneditor-selector ' + this.editor.options.selectorPosition;
+	    dom.tdSeparator = tdSelector;
+	  }
 	  return domTree;
 	};
 
@@ -6493,6 +6522,23 @@ return /******/ (function(modules) { // webpackBootstrap
 	      if (expandable) {
 	        var recurse = event.ctrlKey; // with ctrl-key, expand/collapse all
 	        this._onExpand(recurse);
+	      }
+	    }
+	  }
+	  
+	  // handle row selector click events
+	  if (type == 'click' && target == dom.selector) {
+	    var nodePath = node.getNodePath();
+	    var editor;
+	    if (nodePath.length > 0) {
+	      editor = nodePath[0].editor;
+	    }
+	    if (editor && editor.options && editor.options.onSelector) {
+	      try {
+	        editor.options.onSelector(nodePath);
+	      }
+	      catch (err) {
+	        console.error('Error in onSelector callback: ', err);
 	      }
 	    }
 	  }

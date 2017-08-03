@@ -1,0 +1,91 @@
+<!DOCTYPE HTML>
+<html>
+<head>
+  <title>JSONEditor | Row Selector</title>
+
+  <link href="../dist/jsoneditor.css" rel="stylesheet" type="text/css">
+  <script src="../dist/jsoneditor.js"></script>
+
+
+  <style type="text/css">
+    body {
+      font: 11pt arial;
+    }
+    #jsoneditor {
+      width: 500px;
+    }
+  </style>
+</head>
+<body>
+<div id="jsoneditor"></div>
+
+<script>
+  var container = document.getElementById('jsoneditor');
+
+  var options = {
+    // name: 'row-selector-demo-json',
+    mode: 'view',
+    onSelector: function(nodePath) {
+      // console.log("node path", nodePath);
+      var str = "";
+      for (var i = 0 ; i < nodePath.length ; i++) {
+        var lastNode = i === nodePath.length - 1;
+        str += nodePath[i].index !== undefined ? "[" + nodePath[i].index + "]" : "";
+        if (i > 0 && ["object", "array"].includes(nodePath[i].type)) {
+          str += " > ";
+        }
+        if (nodePath[i].type === "object") {
+          str += nodePath[i].field ? nodePath[i].field : "{}";
+        }
+        else if (nodePath[i].type === "array") {
+          str += nodePath[i].field;
+        }
+        else {
+          var value = (typeof(nodePath[i].value) === 'string' ? "'" + nodePath[i].value + "'" : nodePath[i].value);
+          str += (nodePath[i].field ? " > " + nodePath[i].field : "") + " = " + value;
+        }
+        if (lastNode) {
+          var type = nodePath[i].type === 'auto' ? typeof(nodePath[i].value) : nodePath[i].type;
+          str += " (" + type + ")";
+        }
+      }
+      console.log(str);
+    }
+  };
+
+  var json = {
+    'my-lottery-numbers': [7,12,22,31,49],
+    'winnings-so-far': [
+      {
+        'date': '2015-01-01',
+        'number-of-tickets': 8,
+        'currency': 'GBP',
+        'winnings': [ 8, 'lucky-dip', { 'prize-type': 'lollypop', 'quantity': 2 } ]
+      },
+      {
+        'date': '2017-03-05',
+        'number-of-tickets': 4,
+        'currency': 'GBP',
+        'winnings': [ 2.3 ]
+      }
+    ],
+    'attempts': 123,
+    'keep-playing': true,
+    'feelings': {
+      'hope': {
+        'unit': '%',
+        'value': 0.7
+      },
+      'belief': {
+        'unit': '%',
+        'value': 0.01
+      }
+    },
+    'greetings': 'Hello World'
+  };
+
+  var editor = new JSONEditor(container, options, json);
+  editor.expandAll(true);
+</script>
+</body>
+</html>

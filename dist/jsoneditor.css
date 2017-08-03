@@ -159,6 +159,29 @@ div.jsoneditor-value.jsoneditor-invalid {
   color: #000000;
 }
 
+div.jsoneditor td.jsoneditor-selector {
+  padding-top: 3px;
+  position: absolute;
+  border-radius: 50%;
+  margin-top: -1px;
+}
+
+div.jsoneditor td.jsoneditor-selector.right {
+  right: 2px;
+}
+
+div.jsoneditor td.jsoneditor-selector.left {
+  left: 2px;
+}
+
+div.jsoneditor-tree td.jsoneditor-selector button {
+  border: 1px solid #d3d3d3;
+  background: white;
+  border-radius: 50%;
+  width: 18px;
+  height: 18px;
+}
+
 div.jsoneditor-tree button {
   width: 24px;
   height: 24px;

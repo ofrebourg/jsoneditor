@@ -47,6 +47,9 @@ var util = require('./util');
  *                               {string} valueDisplayMode  Value display type. Available values:
  *                                                          'value' (default), 'schema',
  *                                                          'schema-if-null'
+ *                               {function} onSelector      Callback method triggered when
+ *                                                          clicking the row selector button
+ * 								               {String} selectorPosition	'right' (default) or 'left'
  * @param {Object | undefined} json JSON object
  */
 function JSONEditor (container, options, json) {
@@ -78,15 +81,18 @@ function JSONEditor (container, options, json) {
       options.onEditable = options.editable;
       delete options.editable;
     }
+		if (!options.selectorPosition || options.selectorPosition !== 'left') {
+			options.selectorPosition = 'right';
+		}
 
     // validate options
     if (options) {
       var VALID_OPTIONS = [
         'ajv', 'schema', 'schemaRefs','templates',
         'ace', 'theme','autocomplete',
-        'onChange', 'onEditable', 'onError', 'onModeChange', 'onValueDisplayModeChange',
+        'onChange', 'onEditable', 'onError', 'onModeChange', 'onValueDisplayModeChange','onSelector',
         'escapeUnicode', 'history', 'search', 'mode', 'modes', 'name', 'indentation', 'sortObjectKeys',
-        'valueDisplayMode'
+        'valueDisplayMode', 'selectorPosition'
       ];
 
       Object.keys(options).forEach(function (option) {
