@@ -25,7 +25,7 @@
  *
  * @author  Jos de Jong, <wjosdejong@gmail.com>
  * @version 5.9.3c
- * @date    2017-08-03
+ * @date    2017-08-04
  */
 (function webpackUniversalModuleDefinition(root, factory) {
 	if(typeof exports === 'object' && typeof module === 'object')
@@ -133,7 +133,7 @@ return /******/ (function(modules) { // webpackBootstrap
 	 *                                                          'value' (default), 'schema',
 	 *                                                          'schema-if-null'
 	 *                               {function} onSelector      Callback method triggered when
-	 *                                                          clicking the row selector button
+	 *                                                          clicking the row selector button.
 	 * 								               {String} selectorPosition	'right' (default) or 'left'
 	 * @param {Object | undefined} json JSON object
 	 */
@@ -6535,7 +6535,7 @@ return /******/ (function(modules) { // webpackBootstrap
 	    }
 	    if (editor && editor.options && editor.options.onSelector) {
 	      try {
-	        editor.options.onSelector(nodePath);
+	        editor.options.onSelector(node);
 	      }
 	      catch (err) {
 	        console.error('Error in onSelector callback: ', err);

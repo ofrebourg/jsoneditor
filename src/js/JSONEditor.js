@@ -48,7 +48,7 @@ var util = require('./util');
  *                                                          'value' (default), 'schema',
  *                                                          'schema-if-null'
  *                               {function} onSelector      Callback method triggered when
- *                                                          clicking the row selector button
+ *                                                          clicking the row selector button.
  * 								               {String} selectorPosition	'right' (default) or 'left'
  * @param {Object | undefined} json JSON object
  */

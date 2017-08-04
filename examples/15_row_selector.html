@@ -25,7 +25,8 @@
   var options = {
     // name: 'row-selector-demo-json',
     mode: 'view',
-    onSelector: function(nodePath) {
+    onSelector: function(node) {
+      var nodePath = node.getNodePath();
       // console.log("node path", nodePath);
       var str = "";
       for (var i = 0 ; i < nodePath.length ; i++) {

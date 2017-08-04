@@ -2317,7 +2317,7 @@ Node.prototype.onEvent = function (event) {
     }
     if (editor && editor.options && editor.options.onSelector) {
       try {
-        editor.options.onSelector(nodePath);
+        editor.options.onSelector(node);
       }
       catch (err) {
         console.error('Error in onSelector callback: ', err);
